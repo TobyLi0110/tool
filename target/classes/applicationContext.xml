@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.2.xsd 
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.2.xsd 
+		http://www.springframework.org/schema/aop 
+		http://www.springframework.org/schema/aop/spring-aop-4.2.xsd 
+		http://www.springframework.org/schema/tx 
+		http://www.springframework.org/schema/tx/spring-tx-4.2.xsd
+		http://www.springframework.org/schema/task
+   		http://www.springframework.org/schema/task/spring-task-4.2.xsd
+		http://code.alibabatech.com/schema/dubbo        
+		http://code.alibabatech.com/schema/dubbo/dubbo.xsd">
+
+	<context:component-scan base-package="com.nan.rocketmq_test*.service.impl">
+		<!-- 扫描service -->
+		<context:include-filter type="regex"
+			expression=".*.service.impl.*" />
+	</context:component-scan>
+
+
+
+	<!-- rocketMq生产端配置 -->
+	<bean id="rocket-producer" class="com.touna.infructure.producer.RocketMqProducer">
+		<constructor-arg name="producerGroupName" value="touna-pawn-producer" />
+		<constructor-arg name="namesrvAddr" value="10.0.4.127:9876" />
+		<constructor-arg name="instanceName" value="pawn-producer1" />
+		<constructor-arg name="clientIP" value="10.0.4.127" />
+		<constructor-arg name="scanPath" value="com.nan.rocketmqtest"/>
+	</bean>
+
+	<!-- rocketMq消费端配置 -->
+	<bean id="rocket-consumer" class="com.touna.infructure.consumer.RocketMqConsumer">
+		<property name="consumerConfig" ref="consumerConfig"></property>
+		<property name="scanPath" value="com.nan.rocketmqtest"/>
+		<property name="toppic">
+			<map>
+				<entry key="TopicTest1" value="TagA || TagC || TagD" />
+				<entry key="TopicTest2" value="*" />
+			</map>
+		</property>
+	</bean>
+
+	<bean id="consumerConfig" class="com.touna.infructure.config.ConsumerConfig">
+		<property name="consummerGroupName" value="touna-pawn-ConsumerGroupName"></property>
+		<property name="namesrvAddr" value="10.0.4.127:9876"></property>
+		<property name="instanceName" value="pawn-consumer1"></property>
+		<property name="clientIP" value="10.0.4.127" />
+	</bean>
+	
+	
+	
+	<bean id="daoImpl" class="com.nan.aop.DaoImpl" />
+    <bean id="timeHandler" class="com.nan.aop.TimeHandler" />
+
+    <aop:config proxy-target-class="true">
+        <aop:aspect id="time" ref="timeHandler">
+            <aop:pointcut id="addAllMethod" expression="execution(* com.nan.aop.*.*(..))" />
+            <aop:before method="printTime" pointcut-ref="addAllMethod" />
+            <aop:after method="printTime" pointcut-ref="addAllMethod" />
+        </aop:aspect>
+    </aop:config>
+
+</beans>
